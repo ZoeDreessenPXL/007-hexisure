@@ -1,7 +1,4 @@
-﻿using HexiSureClassLibrary.Entities.Insurances;
-using Microsoft.Data.SqlClient;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -10,13 +7,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HexiSureClassLibrary.DataAccess
+namespace HexiSure.Infrastructure.Data
 {
-    public class InsuranceData
+    public class InsuranceRepository
     {
-        public static string ConnectionString { get; set; }
+        public string _connectionstring;
 
-        public static void InsertNewInsurance(InsurancePolicy insurance)
+        public InsuranceRepository(string connectionstring)
+        {
+            _connectionstring = connectionstring;
+        }
+
+        public void Add(InsurancePolicy insurance)
         {
             // Vul onderstaande query aan met SqlParameters en voer ze uit.
             
@@ -24,17 +26,17 @@ namespace HexiSureClassLibrary.DataAccess
                                 VALUES (... TODO ...)";
         }
 
-        public static DataView SelectAllInsurances()
+        public IEnumerable<InsurancePolicy> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        private static int GetTotalInsurances()
+        private int GetTotalInsurances()
         {
             throw new NotImplementedException();
         }
 
-        public static string GetNextPolicyNumber()
+        public string GetNextPolicyNumber()
         {
             throw new NotImplementedException();
         }
