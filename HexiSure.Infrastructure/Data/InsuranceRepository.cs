@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Dapper;
+using HexiSure.Domain.Entities.Insurances;
+using Microsoft.Data.SqlClient;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -20,25 +23,50 @@ namespace HexiSure.Infrastructure.Data
 
         public void Add(InsurancePolicy insurance)
         {
-            // Vul onderstaande query aan met SqlParameters en voer ze uit.
-            
-            string query = @"INSERT INTO Insurances (PolicyNumber, CostPerMonth, BasePremium, ClientNumber, Description)
-                                VALUES (... TODO ...)";
+            using(SqlConnection conn =  new SqlConnection(_connectionstring))
+            {
+                string query = @"INSERT INTO Insurances (PolicyNumber, CostPerMonth, BasePremium, ClientNumber, Description)
+                                VALUES (@PolicyNumber, @CostPerMonth, @BasePremium, @ClientNumber, @Description)";
+                conn.Execute(query, new { PolicyNumber = GetNextPolicyNumber(), CostPerMonth = insurance.CalculateTotalPremiumPerMonth(), 
+                    BasePremium = insurance.BasePremium, ClientNumber = insurance.ClientNumber, Description = insurance.ToString()});
+            }
         }
 
         public IEnumerable<InsurancePolicy> GetAll()
         {
-            throw new NotImplementedException();
+            using(SqlConnection conn = new SqlConnection(_connectionstring))
+            {
+                string sql = @"SELECT * FROM Insurances";
+                return conn.Query<InsurancePolicy>(sql);
+            }
         }
 
         private int GetTotalInsurances()
         {
-            throw new NotImplementedException();
+            using (SqlConnection conn = new SqlConnection(_connectionstring))
+            {
+                string todayPrefix = DateTime.Now.ToString("yyMMdd");
+
+                string sql = @"
+                    SELECT COUNT(*) 
+                    FROM Insurances
+                    WHERE CAST(PolicyNumber AS VARCHAR(20)) LIKE @prefix + '%'";
+
+                return conn.ExecuteScalar<int>(sql, new { prefix = todayPrefix });
+            }
         }
 
-        public string GetNextPolicyNumber()
+        public int GetNextPolicyNumber()
         {
-            throw new NotImplementedException();
+            string todayPrefix = DateTime.Now.ToString("yyMMdd");
+
+            int count = GetTotalInsurances();
+
+            string sequence = count.ToString("D3");
+
+            string result = $"{todayPrefix}{sequence}";
+
+            return int.Parse(result);
         }
     }
 }
